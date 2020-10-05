@@ -8,5 +8,96 @@ output: html_document
 ### Notes pre-coding segment
 -exploratory data analysis includes visualization, checks for data completeness
 and reliability
-quantification of centrality and variability
-initial evaluation of hypothesis and hypothesis generation
+-quantification of centrality and variability
+-initial evaluation of hypothesis and hypothesis generation
+-looking at data is critical
+-make dozens of graphics for each dataset
+
+GGPLOT
+-makes graphics with relative ease
+-cohesiveness, same principles underlie all graphic types
+-start google searches with 'ggplot' 
+-basic graph components: data, aesthetic mappings, geoms
+-advanced graph components: facets, scales, statistics
+-combining these components build a graph
+
+### time to code
+
+```{r}
+library(tidyverse)
+library(ggridges)
+```
+
+-rnoaa allows us to pull data from online
+  so part one is essentially "bring me that data"
+  and then the part in mutate is just data manipulation
+  then select to make sure that the order is as I want it
+```{r}
+weather_df = 
+  rnoaa::meteo_pull_monitors(
+    c("USW00094728", "USC00519397", "USS0023B17S"),
+    var = c("PRCP", "TMIN", "TMAX"), 
+    date_min = "2017-01-01",
+    date_max = "2017-12-31") %>%
+  mutate(
+    name = recode(
+      id, 
+      USW00094728 = "CentralPark_NY", 
+      USC00519397 = "Waikiki_HA",
+      USS0023B17S = "Waterhole_WA"),
+    tmin = tmin / 10,
+    tmax = tmax / 10) %>%
+  select(name, id, everything())
+```
+
+### creating scatterplots
+
+```{r}
+ggplot(weather_df, aes(x = tmin, y = tmax))+
+  geom_point()
+
+##new approach same plot
+weather_df %>%
+  ggplot(aes(x = tmin, y = tmax))+
+  geompoint()
+```
+
+save and edit a plot object
+
+```{r}
+weather_plot =
+  weather_df %>%
+  ggplot(aes(x = tmin, y = tmax))
+
+weather_plot + geom_point()
+```
+
+let's get fancy
+
+```{r}
+
+weather_df %>%
+  ggplot(aes(x = tmin, y = tmax, color = name)) +
+  geom_point() +
+  geom_smooth(se = FALSE)+
+  facet_grid(. ~name)
+```
+
+## some small notes
+How many geoms have to exist?
+you can have whatever geoms you want
+**but in general it is good to show the data points with geom_point
+
+## univariate plots
+Histograms are neat,
+we can also make box plots
+trendy plots include geom_violin
+also ridge plots, aka the most popular plot of 2017 (need to load ggridges package)
+
+```{r}
+weather_df %>%
+  ggplot(aes(x = tmin, fill = name))+
+  geom_histogram()+
+  geom_density(alpha = .3)
+
+```
