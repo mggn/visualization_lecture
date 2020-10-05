@@ -139,6 +139,8 @@ weather_df %>%
     names_from = name,
     values_from = mean_tmax) %>% 
   knitr::kable(digits = 1)
+
+#kable formats results in a way that's easier to read
 ```
 
 ```{r}
