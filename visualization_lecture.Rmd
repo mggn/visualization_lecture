@@ -1,0 +1,12 @@
+---
+title: "visualization_lecture"
+author: "mggn"
+date: "10/5/2020"
+output: html_document
+---
+
+### Notes pre-coding segment
+-exploratory data analysis includes visualization, checks for data completeness
+and reliability
+quantification of centrality and variability
+initial evaluation of hypothesis and hypothesis generation
