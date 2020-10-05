@@ -1,0 +1,162 @@
+---
+title: "exploratory_analysis"
+author: "mggn"
+date: "10/5/2020"
+output: html_document
+---
+
+## Grouped summaries
+quantitative comparisons across groups are informative
+group_by() and summarize() are useful in this situation
+
+group_by() adds a layer to your data based on existing variables,
+changes behavior of some key functions, not invisible but easy to miss
+
+summarize() allows you to compute one number summaries based on existing variables,
+most useful in conjunction with group_by()
+produces a dataframe, easy to integrate into a pipeline
+
+```{r setup}
+library(tidyverse)
+
+weather_df =  
+  rnoaa::meteo_pull_monitors(
+    c("USW00094728", "USC00519397", "USS0023B17S"),
+    var = c("PRCP", "TMIN", "TMAX"), 
+    date_min = "2017-01-01",
+    date_max = "2017-12-31") %>%
+  mutate(
+    name = recode(
+      id, 
+      USW00094728 = "CentralPark_NY", 
+      USC00519397 = "Waikiki_HA",
+      USS0023B17S = "Waterhole_WA"),
+    tmin = tmin / 10,
+    tmax = tmax / 10,
+    month = lubridate::floor_date(date, unit = "month")) %>%
+  select(name, id, everything())
+```
+
+```{r}
+weather_df %>%
+  group_by(name, month) %>%
+  summarize(n_obs = n())
+```
+
+```{r}
+weather_df %>%
+  count(month, name = "n_obs")
+```
+
+# WARNING: don't use r's table function because it is ugly and unhelpful
+
+```{r eval = FALSE}
+weather_df %>%
+  pull(month) %>% 
+  table
+```
+
+
+```{r}
+weather_df %>%
+  group_by(month) %>%
+  summarize(
+    n_obs = n(),
+    n_days = n_distinct(date))
+```
+### This is a digression on 2 by 2 tables
+
+case_when allows us to recode variables
+(I used this in the last HW lol)
+
+```{r}
+
+weather_df %>% 
+  mutate(
+    cold = case_when(
+      tmax <  5 ~ "cold",
+      tmax >= 5 ~ "not_cold",
+      TRUE      ~ ""
+  )
+  ) %>% 
+  filter(name != "Waikiki_HA") %>% 
+  group_by(name, cold) %>% 
+  summarize(count = n())
+```
+
+```{r}
+#reasonable way to create a 2*2 table in R
+
+weather_df %>% 
+  mutate(cold = case_when(
+    tmax <  5 ~ "cold",
+    tmax >= 5 ~ "not_cold",
+    TRUE     ~ ""
+  )) %>% 
+  filter(name != "Waikiki_HA") %>% 
+  janitor::tabyl(name, cold)
+```
+
+```{r}
+
+weather_df %>%
+  group_by(month) %>%
+  summarize(
+    mean_tmax = mean(tmax),
+    mean_prec = mean(prcp, na.rm = TRUE),
+    median_tmax = median(tmax),
+    sd_tmax = sd(tmax))
+```
+
+```{r}
+weather_df %>%
+  group_by(name, month) %>%
+  summarize(
+    mean_tmax = mean(tmax),
+    median_tmax = median(tmax))
+```
+    
+```{r}    
+weather_df %>%
+  group_by(name, month) %>%
+  summarize(across(tmin:prcp, mean))
+```
+  
+```{r}
+weather_df %>%
+  group_by(name, month) %>%
+  summarize(mean_tmax = mean(tmax)) %>%
+  ggplot(aes(x = month, y = mean_tmax, color = name)) + 
+    geom_point() + geom_line() + 
+    theme(legend.position = "bottom")
+```
+    
+```{r}
+weather_df %>%
+  group_by(name, month) %>%
+  summarize(mean_tmax = mean(tmax)) %>% 
+  pivot_wider(
+    names_from = name,
+    values_from = mean_tmax) %>% 
+  knitr::kable(digits = 1)
+```
+
+```{r}
+  
+weather_df %>%
+  group_by(name) %>%
+  mutate(
+    mean_tmax = mean(tmax, na.rm = TRUE),
+    centered_tmax = tmax - mean_tmax) %>% 
+  ggplot(aes(x = date, y = centered_tmax, color = name)) + 
+    geom_point()
+
+```
+
+```{r}
+weather_df %>%
+  group_by(name, month) %>%
+  mutate(temp_ranking = min_rank(tmax))
+```
+
+
