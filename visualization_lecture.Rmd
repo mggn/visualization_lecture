@@ -26,6 +26,7 @@ GGPLOT
 ```{r}
 library(tidyverse)
 library(ggridges)
+library(patchwork)
 ```
 
 -rnoaa allows us to pull data from online
@@ -53,13 +54,11 @@ weather_df =
 ### creating scatterplots
 
 ```{r}
-ggplot(weather_df, aes(x = tmin, y = tmax))+
-  geom_point()
-
 ##new approach same plot
 weather_df %>%
   ggplot(aes(x = tmin, y = tmax))+
-  geompoint()
+  geom_point()
+
 ```
 
 save and edit a plot object
@@ -101,3 +100,71 @@ weather_df %>%
   geom_density(alpha = .3)
 
 ```
+
+# ggplot part 2
+
+There are some really terrible graphics out there...
+to avoid bad plots,
+-show as much data as you possibly can
+-avoid superfluous thrills
+-facilitate comparisons
+  put groups in a sensible order, use common axes, use color to highlight 
+  groups, NO PIE CHARTS lol
+-be clear on intent and your audience
+-ggplot is built around a tidy data framework
+-touble making a plot could be due to untidy data
+
+```{r}
+weather_df %>%
+  ggplot(aes(x = tmin, y = tmax, color = name))+
+  geom_point(alpha = .5)+
+  labs(
+    title = "temperature plot",
+    x = "min daily temp C",
+    y = "max daily temp c",
+    caption = "data from rnoaa package; temperatures in 2017"
+  )
+```
+
+leanring about scales using the same plot
+
+```{r}
+weather_df %>%
+  ggplot(aes(x = tmin, y = tmax, color = name))+
+  geom_point(alpha = .5)+
+  labs(
+    title = "temperature plot",
+    x = "min daily temp C",
+    y = "max daily temp c",
+    caption = "data from rnoaa package; temperatures in 2017"
+  )+
+  scale_x_continuous(
+    breaks = c(-15, 0, 15),
+    labels = c("15 C", "0", "15 C")
+  )+
+  scale_y_continuous(
+    position = "right"
+  )
+```
+
+```{r}
+weather_df %>%
+  ggplot(aes(x = tmin, y = tmax, color = name))+
+  geom_point(alpha = .5)+
+  labs(
+    title = "temperature plot",
+    x = "min daily temp C",
+    y = "max daily temp c",
+    caption = "data from rnoaa package; temperatures in 2017"
+  )+
+  viridis::scale_color_viridis(
+    name = "Location",
+    discrete = TRUE
+    )+
+  theme(legend.position = "bottom")
+  
+```
+
+there are a variety of themes that you can use!
+like theme_minimal
+tweaks to theme need to be added after the theme step
